@@ -7,6 +7,7 @@
 //#include <ranges> // for ranges, use -std=c++20 during compilation
 
 using std::cout;
+using std::cerr;
 using std::endl;
 
 int part1(const std::vector< std::vector<int> >& vec, bool);
@@ -73,10 +74,16 @@ bool part2(const std::vector<int>& vec)
 }
 
 
-int main()
+int main(int argc, char *argv[])
 {
+
+    if (argc != 2) {
+        cerr << "Usage: " << argv[0] << " <file>" << endl;
+        return 1;
+    }
+
     std::ifstream file;
-    file.open("input.txt");
+    file.open(argv[1]);
     
     std::vector< std::vector<int> > vec1;
     getVectors(vec1, file);
