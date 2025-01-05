@@ -5,6 +5,9 @@ build/
 temp.*
 temp/
 
+# input files
+input.txt
+
 # Prerequisites
 *.d
 
