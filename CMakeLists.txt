@@ -52,4 +52,4 @@ add_aoc_day(1 Day01_Historian_Hysteria)
 add_aoc_day(2 Day02_Red-Nosed_Reports)
 add_aoc_day(3 Day03_Mull_It_Over)
 add_aoc_day(4 Day04_Ceres_Search)
-
+add_aoc_day(5 Day05_Print_Queue)
