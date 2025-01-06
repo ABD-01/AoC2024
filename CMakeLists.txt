@@ -51,3 +51,5 @@ add_custom_target(run)
 add_aoc_day(1 Day1_Historian_Hysteria)
 add_aoc_day(2 Day2_Red-Nosed_Reports)
 add_aoc_day(3 Day3_Mull_It_Over)
+add_aoc_day(4 Day4_Ceres_Search)
+
