@@ -7,6 +7,7 @@ temp/
 
 # input files
 input.txt
+sample.txt
 
 # Prerequisites
 *.d
