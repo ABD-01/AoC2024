@@ -8,3 +8,10 @@ target_include_directories(day6
     PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}
 )
+
+target_compile_options(day6
+    PRIVATE
+        -O3
+        -Wall
+        -Wextra
+    )
