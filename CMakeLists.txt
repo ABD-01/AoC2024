@@ -9,6 +9,7 @@ project(
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic")
 
 MESSAGE(STATUS "WELCOME TO ADVENT OF CODE 2024")
 
@@ -46,6 +47,13 @@ function(add_aoc_day day dir)
     ENDIF()
 endfunction()
 
+# Add an option for treating warnings as errors
+option(ENABLE_WERROR "Treat warnings as errors" OFF)
+
+if(ENABLE_WERROR)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
+endif()
+
 add_custom_target(run)
 
 add_aoc_day(1 Day01_Historian_Hysteria)
@@ -57,3 +65,4 @@ add_aoc_day(6 Day06_Guard_Gallivant)
     add_subdirectory(Day06_Guard_Gallivant)
 add_aoc_day(7 Day07_Bridge_Repair)
     add_subdirectory(Day07_Bridge_Repair)
+add_aoc_day(8 Day08_Resonant_Collinearity)
