@@ -3,6 +3,7 @@
 #include <vector>
 #include <chrono>
 #include <sstream>
+#include <Python.h>
 
 using std::cout;
 using std::cerr;
@@ -26,8 +27,8 @@ std::ostream& operator<<(std::ostream& os, const std::vector<T>& );
 
 std::ostream& operator<<(std::ostream& os, const std::vector<char>& v);
 
-void part1(std::vector<int>& dm);
-void part2(std::vector<int>& dm);
+void part1(std::vector<int> dm);
+void part2(std::vector<int> dm);
 
 
 int main(int argc, char* argv[])
@@ -52,15 +53,13 @@ int main(int argc, char* argv[])
         disk_map[i++] = c - '0';
     }
         
-    //cout << disk_map <<endl;
-
     part1(disk_map);
-    //part2(disk_map);
+    part2(disk_map);
 
     return 0;
 }
 
-void part1(std::vector<int>& dm)
+void part1(std::vector<int> dm)
 {
     Timer t;
     std::stringstream ss;
@@ -69,15 +68,17 @@ void part1(std::vector<int>& dm)
     int i = 0,j,id_first = 0, id_last;
     j = (dm.size() % 2) ? dm.size() - 1 : dm.size() - 2;
     id_last = j / 2;
+    // An individual file/empty space is different from file/empty block. Files in same block have same id. 
+    // i is the position of individual file/empty space
+    // j is the position of file block starting from the end (decrements by 2 to keep pointing to file block)
+    // id_first and id_last is the ids of files blocks. 
 
     for(int pos = 0; pos < dm.size(); ++pos)
     {
-        //cout << dm << endl;
-        //cout << "pos = " << pos << " j = " << j <<  " id_last = " << id_last << endl;
-        //cout << ss.str() <<endl;
+        // cout << ss.str() <<endl;
         if( pos % 2 == 0) // even position i.e it is file block
         {
-            for(int k = 0; k < dm[pos]; ++k)
+            for(int k = 0; k < dm[pos]; ++k)  // for files in block at pos
             {
                 ss << id_first;
                 result += (id_first*i);
@@ -87,9 +88,9 @@ void part1(std::vector<int>& dm)
         }
         else // odd position i.e. empty block
         {
-            for(int k = 0; k < dm[pos]; ++k)
+            for(int k = 0; k < dm[pos]; ++k) // for empty spaces in block at pos
             {
-                while(dm[j] == 0 && j > pos)
+                while(dm[j] == 0 && j > pos) //  shift j left until 
                 {
                     j-=2;
                     --id_last;
@@ -104,12 +105,43 @@ void part1(std::vector<int>& dm)
         }
         if(j<pos) break;
     }
-    //cout << ss.str() << endl;
+    // cout << ss.str() << endl;
     cout << "Part 1: " << result << endl;
 }
 
-#if 1
-void part2(std::vector<int>& dm)
+void part2(std::vector<int> dm)
+{
+    Py_Initialize();
+    PyRun_SimpleString("import sys; sys.path.append('.')");
+    PyObject* pName = PyUnicode_FromString("day9"); // Python script name
+    PyObject* pModule = PyImport_Import(pName);
+    Py_DECREF(pName);
+
+    if (pModule != nullptr) {
+        // Get the Python function
+        PyObject* pFunc = PyObject_GetAttrString(pModule, "part2");
+        if (PyCallable_Check(pFunc)) {
+            // Convert C++ vector to Python list
+            PyObject* pList = PyList_New(dm.size());
+            for (size_t i = 0; i < dm.size(); ++i)
+                PyList_SetItem(pList, i, PyLong_FromLong(dm[i])); // Note: PyList_SetItem steals the reference
+            // Call the Python function
+            PyObject* pResult = PyObject_CallFunctionObjArgs(pFunc, pList, nullptr);
+            Py_DECREF(pList);
+            Py_DECREF(pFunc);
+        } else {
+            PyErr_Print();
+        }
+        Py_DECREF(pModule);
+    } else {
+        PyErr_Print();
+    }
+
+    Py_Finalize();    
+}
+
+#if 0
+void part2(std::vector<int> dm)
 {
     Timer t;
     std::stringstream ss;
@@ -127,8 +159,6 @@ void part2(std::vector<int>& dm)
 
     for(int pos = 0; pos < dm.size(); ++pos)
     {
-        cout << dm << endl;
-        cout << "pos = " << pos << " j = " << j <<  " id_last = " << id_last << endl;
         //cout << ss.str() <<endl;
         cout <<memory<<endl;
         if( pos % 2 == 0) // even position i.e it is file block
@@ -148,9 +178,7 @@ void part2(std::vector<int>& dm)
         // odd position i.e. empty block
         for(first_ptr = pos; first_ptr<dm.size(); ++first_ptr)
         {
-            cout << "first_ptr = " << first_ptr << " second_ptr = " << second_ptr <<  " id2 = " << id2 << endl;
-            //cout << ss.str() <<endl;
-            cout <<memory<<endl;
+            cout << ss.str() <<endl;
 
             if(first_ptr%2==0) 
             {
@@ -191,10 +219,8 @@ void part2(std::vector<int>& dm)
 
         if(j<pos) break;
     }
-    //cout << ss.str() << endl;
-    cout <<memory<<endl;
+    cout << ss.str() << endl;
 
-    cout << udm << endl;
     result = 0;
     for(int l =0;l<udm.size();++l)
     {
@@ -206,7 +232,7 @@ void part2(std::vector<int>& dm)
 #endif
 
 #if 0
-void part2(std::vector<int>& dm)
+void part2(std::vector<int> dm)
 {
     Timer t;
     std::stringstream ss;
@@ -219,8 +245,6 @@ void part2(std::vector<int>& dm)
 
     for(int pos = 0; pos < dm.size(); ++pos)
     {
-        cout << dm << endl;
-        cout << "pos = " << pos << " j = " << j <<  " id_last = " << id_last << endl;
         cout << ss.str() <<endl;
         if( pos % 2 == 0) // even position i.e it is file block
         {
@@ -254,7 +278,7 @@ void part2(std::vector<int>& dm)
         if(j<pos) break;
     }
     cout << ss.str() << endl;
-    cout << udm << endl;
+
     result = 0;
     for(int l =0;l<udm.size();++l)
     {
@@ -265,17 +289,6 @@ void part2(std::vector<int>& dm)
 }
 #endif
 
-template <typename T>
-std::ostream& operator<<(std::ostream& os, const std::vector<T>& v)
-{
-    os << "[";
-    for (auto i = v.begin(); i != v.end(); ++i) {
-        if (i != v.begin()) os << ", ";
-        os << *i;
-    }
-    os << "]";
-    return os;
-}
 std::ostream& operator<<(std::ostream& os, const std::vector<char>& v)
 {
     for (auto i = v.begin(); i != v.end(); ++i) {

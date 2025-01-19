@@ -9,7 +9,7 @@ project(
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Wno-sign-compare -O3")
 
 MESSAGE(STATUS "WELCOME TO ADVENT OF CODE 2024")
 
@@ -22,8 +22,14 @@ function(add_aoc_day day dir)
     IF (EXISTS ${WORKING_DIR})
 
         MESSAGE(STATUS "Processing Day ${day}: ${WORKING_DIR}")
-        IF (EXISTS ${WORKING_DIR}/input.txt)
             add_executable(${target} ${WORKING_DIR}/main.cpp)
+            add_custom_target(run${day}
+                COMMAND ${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/input${day}.txt
+                DEPENDS ${target}
+            )
+            add_dependencies(run run${day})
+            
+        IF (EXISTS ${WORKING_DIR}/input.txt)
             add_custom_command(
                 TARGET ${target} POST_BUILD 
                 COMMAND ${CMAKE_COMMAND} -E copy 
@@ -31,17 +37,9 @@ function(add_aoc_day day dir)
                 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/input${day}.txt
                 COMMENT "Copying input.txt to input${day}.txt"
             )
-            add_custom_target(run${day}
-                COMMAND ${target} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/input${day}.txt
-                DEPENDS ${target}
-            )
-
-            add_dependencies(run run${day})
-
         ELSE()
             MESSAGE(WARNING "Day ${day} does not have an input file")
         ENDIF()
-
     ELSE()
         MESSAGE(WARNING "Day ${day} does not exist")
     ENDIF()
@@ -67,3 +65,4 @@ add_aoc_day(7 Day07_Bridge_Repair)
     add_subdirectory(Day07_Bridge_Repair)
 add_aoc_day(8 Day08_Resonant_Collinearity)
 add_aoc_day(9 Day09_Disk_Fragmenter)
+    add_subdirectory(Day09_Disk_Fragmenter)
