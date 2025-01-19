@@ -34,6 +34,10 @@ sample.txt
 *.out
 *.app
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
 
 # Auto-generated tag files
 tags
