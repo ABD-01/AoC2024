@@ -3,10 +3,25 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include <unordered_map>
+#include <chrono>
 
 using std::cout;
 using std::cerr;
 using std::endl;
+
+class Timer {
+public:
+    Timer() { start = std::chrono::high_resolution_clock::now(); }
+    ~Timer() {
+        auto end = std::chrono::high_resolution_clock::now();
+        std::cout << "Elapsed time: "
+                  << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()
+                  << " us" << std::endl;
+    }
+private:
+    std::chrono::time_point<std::chrono::high_resolution_clock> start;
+};
 
 void get_rules_and_orders(
         std::vector<std::pair<int, int>>& rule,
@@ -53,6 +68,7 @@ std::vector<std::vector<int>> part1(
         std::vector<std::vector<int>>& orders
     )
 {
+    Timer t;
     std::vector<std::vector<int>> incorrect_orders;
     int result = 0;
     for(std::vector<int> o: orders)
@@ -71,6 +87,7 @@ void part2(
         std::vector<std::vector<int>>& incorrect_orders
     )
 {
+    Timer t;
     int result = 0;
 
     for(std::vector<int>& o: incorrect_orders)
@@ -106,7 +123,7 @@ void part2(
     auto temp =  part1(rule, incorrect_orders);
 }
 
-bool isOrderValid(const std::vector<int>& o, const std::vector<std::pair<int, int>>& rule)
+bool _isOrderValid(const std::vector<int>& o, const std::vector<std::pair<int, int>>& rule)
 {
     for(auto i=0; i < o.size()-1; ++i) 
     {
@@ -122,6 +139,27 @@ bool isOrderValid(const std::vector<int>& o, const std::vector<std::pair<int, in
             }
         }
     }
+    return true;
+}
+
+bool isOrderValid(const std::vector<int>& o, const std::vector<std::pair<int, int>>& rule) {
+    // Map elements in 'o' to their indices for fast lookup
+    std::unordered_map<int, int> indexMap;
+    for (int i = 0; i < o.size(); ++i) {
+        indexMap[o[i]] = i;
+    }
+
+    // Check if any rule is violated
+    for (const auto& r : rule) {
+        if (indexMap.find(r.first) != indexMap.end() && indexMap.find(r.second) != indexMap.end()) {
+            if (indexMap[r.first] > indexMap[r.second]) {
+                // Order is invalid
+                return false;
+            }
+        }
+    }
+
+    // Order is valid
     return true;
 }
 
