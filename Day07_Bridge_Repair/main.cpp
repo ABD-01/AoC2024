@@ -83,7 +83,7 @@ bool check_target1(const std::vector<int>& operands, int index, ll current_value
 void part1(const std::vector<std::pair<ll, std::vector<int>>>& data)
 {
     ll result = 0;
-    for(const auto& d: data)
+    for(const std::pair<ll, std::vector<int>>& d: data)
     {
         if(check_target1(d.second, 0, 1, d.first))
         {
