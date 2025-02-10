@@ -3,7 +3,14 @@
 #include <vector>
 #include <chrono>
 #include <sstream>
-#include <Python.h>
+
+#define DEBUG_PRINT 0
+
+#if DEBUG_PRINT
+#define DEBUG(x) std::cout << x
+#else
+#define DEBUG(x)
+#endif
 
 using std::cout;
 using std::cerr;
@@ -22,13 +29,8 @@ private:
     std::chrono::time_point<std::chrono::high_resolution_clock> start;
 };
 
-template <typename T>
-std::ostream& operator<<(std::ostream& os, const std::vector<T>& );
-
-std::ostream& operator<<(std::ostream& os, const std::vector<char>& v);
-
 void part1(std::vector<int> dm);
-void part2(std::vector<int> dm);
+void part2(std::vector<int> );
 
 
 int main(int argc, char* argv[])
@@ -75,7 +77,7 @@ void part1(std::vector<int> dm)
 
     for(int pos = 0; pos < dm.size(); ++pos)
     {
-        // cout << ss.str() <<endl;
+        DEBUG(ss.str() << endl);
         if( pos % 2 == 0) // even position i.e it is file block
         {
             for(int k = 0; k < dm[pos]; ++k)  // for files in block at pos
@@ -105,9 +107,116 @@ void part1(std::vector<int> dm)
         }
         if(j<pos) break;
     }
-    // cout << ss.str() << endl;
+    DEBUG(ss.str() << endl);
     cout << "Part 1: " << result << endl;
 }
+
+
+struct Block {
+    int block_size;
+    int file_id;
+
+    Block(int x, int y = -1) : block_size(x), file_id(y) {}
+
+    void print() const {
+        for (int i = 0; i < block_size; i++) {
+            if (file_id == -1)
+                std::cout << ".";
+            else
+                std::cout << file_id;
+        }
+    }   
+};
+
+void printBlocks(const std::vector<Block>& blocks) {
+#if DEBUG_PRINT
+    for (const auto& b : blocks) {
+        b.print();
+    }
+    std::cout << std::endl;
+#endif
+}
+
+std::ostream& operator<<(std::ostream& os, const Block& b) {
+    os << "Block(" << b.block_size << ", " << b.file_id << ")";
+    return os;
+}
+
+std::vector<Block> moveBlocks(std::vector<Block>& dm, int j) {
+    std::vector<Block> tmp;
+    if (dm[j].file_id == -1)
+        return dm;  // Selected block is empty, return as is
+
+    for (size_t i = 0; i < dm.size(); i++) {
+        if (j < i) {
+            tmp.insert(tmp.end(), dm.begin() + i, dm.end());
+            break;
+        }
+
+        if (dm[i].file_id != -1) {
+            tmp.push_back(dm[i]);
+            continue;
+        }
+
+        if (dm[i].block_size < dm[j].block_size) {
+            tmp.push_back(dm[i]);
+            continue;
+        }
+
+        int diff = dm[i].block_size - dm[j].block_size;
+        if (diff > 0) {
+            tmp.emplace_back(dm[j].block_size, dm[j].file_id);
+            tmp.emplace_back(diff, -1);
+            dm[j].file_id = -1;
+        } else {
+            tmp.emplace_back(dm[j].block_size, dm[j].file_id);
+            dm[j].file_id = -1;
+        }
+
+        tmp.insert(tmp.end(), dm.begin() + i + 1, dm.end());
+        break;
+    }
+
+    return tmp;
+}
+
+
+void part2(std::vector<int> data) {
+    Timer t;
+    std::vector<Block> dm;
+    
+    for (size_t i = 0; i < data.size(); i++) {
+        if (i % 2 == 0)
+            dm.emplace_back(data[i], i / 2);
+        else
+            dm.emplace_back(data[i], -1);
+    }
+
+    printBlocks(dm);
+
+    for (int j = dm.size() - 1; j >= 0; j--) {
+        dm = moveBlocks(dm, j);
+        printBlocks(dm);
+    }
+
+    long long unsigned int result = 0;
+    int pos = 0;
+    
+    for (const auto& b : dm) {
+        for (int i = 0; i < b.block_size; i++) {
+            if (b.file_id != -1)
+                //result += (b.file_id * pos);
+                result += (static_cast<unsigned long long>(b.file_id) * pos);
+            pos++;
+        }
+    }
+
+    std::cout << "Part 2: " << result << std::endl;
+}
+
+
+#if 0
+#include <Python.h>
 
 void part2(std::vector<int> dm)
 {
@@ -139,161 +248,5 @@ void part2(std::vector<int> dm)
 
     Py_Finalize();    
 }
-
-#if 0
-void part2(std::vector<int> dm)
-{
-    Timer t;
-    std::stringstream ss;
-
-    std::vector<int> udm;
-    long long unsigned int result = 0;
-    int i = 0,j,id_first = 0, id_last;
-    j = (dm.size() % 2) ? dm.size() - 1 : dm.size() - 2;
-    id_last = j / 2;
-    
-    std::vector<char> memory;
-
-    int first_ptr = i, second_ptr = j;
-    int id1 = id_first, id2 = id_last;
-
-    for(int pos = 0; pos < dm.size(); ++pos)
-    {
-        //cout << ss.str() <<endl;
-        cout <<memory<<endl;
-        if( pos % 2 == 0) // even position i.e it is file block
-        {
-            for(int k = 0; k < dm[pos]; ++k)
-            {
-                ss << id_first;
-                udm.push_back(id_first);
-                result += (id_first*i);
-                ++i;
-                memory.push_back(id_first + '0');
-            }
-            ++id_first;
-            continue;
-        }
-        id1 = id_first;
-        // odd position i.e. empty block
-        for(first_ptr = pos; first_ptr<dm.size(); ++first_ptr)
-        {
-            cout << ss.str() <<endl;
-
-            if(first_ptr%2==0) 
-            {
-                for(int k = 0; k < dm[first_ptr]; ++k)
-                {
-                    ss << id1;
-                    memory.push_back(id1+'0');
-                }
-                if(dm[first_ptr] == 0)
-                    memory.push_back('.');
-                ++id1;
-                continue;
-            }
-            while(dm[first_ptr] >= dm[second_ptr] && second_ptr > first_ptr) // if empty space has capacity for files
-            {
-                dm[first_ptr] -= dm[second_ptr]; // empty spaces consumed
-
-                for(auto _=0;_<dm[second_ptr];_++) {ss << id2; memory.push_back(id2+'0');}
-
-                dm[second_ptr] = 0; // all files moved from this block
-                second_ptr -= 2;
-                --id2;
-            }
-
-            for(int k = 0; k < dm[first_ptr]; ++k)
-            {
-                ss << ".";
-                memory.push_back('.');
-            }
-
-            if(dm[first_ptr] == 0 || second_ptr < first_ptr)
-            {
-                memory.push_back('.');
-            }
-        }
-        break;
-        j -= 2; // move left to see if any more file can fit in the block
-
-        if(j<pos) break;
-    }
-    cout << ss.str() << endl;
-
-    result = 0;
-    for(int l =0;l<udm.size();++l)
-    {
-        result = result + (l*udm[l]);
-    }
-    
-    cout << "Part 2: " << result << endl;
-}
 #endif
-
-#if 0
-void part2(std::vector<int> dm)
-{
-    Timer t;
-    std::stringstream ss;
-
-    std::vector<int> udm;
-    long long unsigned int result = 0;
-    int i = 0,j,id_first = 0, id_last;
-    j = (dm.size() % 2) ? dm.size() - 1 : dm.size() - 2;
-    id_last = j / 2;
-
-    for(int pos = 0; pos < dm.size(); ++pos)
-    {
-        cout << ss.str() <<endl;
-        if( pos % 2 == 0) // even position i.e it is file block
-        {
-            for(int k = 0; k < dm[pos]; ++k)
-            {
-                ss << id_first;
-                udm.push_back(id_first);
-                result += (id_first*i);
-                ++i;
-            }
-            ++id_first;
-        }
-        else // odd position i.e. empty block
-        {
-            while(dm[pos] >= dm[j] && j > pos) // while empty space has capacity for files
-            {
-                dm[pos] -= dm[j]; // empty spaces consumed
-                                  //
-                for(auto _=0;_<dm[j];_++) ss << id_last;
-
-                dm[j] = 0; // all files moved from this block
-                j -= 2; // move left to see if any more file can fit in the block
-                --id_last;
-            }
-
-            for(int k = 0; k < dm[pos]; ++k)
-            {
-                ss << ".";
-            }
-        }
-        if(j<pos) break;
-    }
-    cout << ss.str() << endl;
-
-    result = 0;
-    for(int l =0;l<udm.size();++l)
-    {
-        result = result + (l*udm[l]);
-    }
-    
-    cout << "Part 2: " << result << endl;
-}
-#endif
-
-std::ostream& operator<<(std::ostream& os, const std::vector<char>& v)
-{
-    for (auto i = v.begin(); i != v.end(); ++i) {
-        os << *i;
-    }
-    return os;
-}
 
