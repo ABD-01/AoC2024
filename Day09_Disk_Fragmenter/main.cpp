@@ -5,6 +5,7 @@
 #include <sstream>
 
 #define DEBUG_PRINT 0
+#define USE_LEGACY  0
 
 #if DEBUG_PRINT
 #define DEBUG(x) std::cout << x
@@ -142,6 +143,94 @@ std::ostream& operator<<(std::ostream& os, const Block& b) {
     return os;
 }
 
+#if USE_LEGACY
+std::vector<Block> moveBlocks(std::vector<Block>& dm, int j);
+#else
+void moveBlocks(std::vector<Block>& dm, int j);
+#endif
+
+#if !USE_LEGACY
+void moveBlocks(std::vector<Block>& dm, int j) {
+    if (dm[j].file_id == -1)
+        return;  // Selected block is empty, return as is
+
+    for (size_t i = 0; i < dm.size(); i++) {
+        if (j < i) {
+            break;
+        }
+
+        if (dm[i].file_id != -1) {
+            continue;
+        }
+
+        if (dm[i].block_size < dm[j].block_size) {
+            continue;
+        }
+
+        int diff = dm[i].block_size - dm[j].block_size;
+        if (diff > 0) {
+            dm[i].block_size = diff;
+            dm.emplace(dm.begin()+i, dm[j].block_size, dm[j].file_id);
+            dm[j+1].file_id = -1; // to account for len increase
+        } else {
+            std::swap(dm[i], dm[j]);
+        }
+
+        break;
+    }
+
+    return;
+}
+#endif
+
+void part2(std::vector<int> data) {
+    Timer t;
+    std::vector<Block> dm;
+    
+    for (size_t i = 0; i < data.size(); i++) {
+        if (i % 2 == 0)
+            dm.emplace_back(data[i], i / 2);
+        else
+            dm.emplace_back(data[i], -1);
+    }
+
+    printBlocks(dm);
+
+#if USE_LEGACY
+    for (int j = dm.size() - 1; j >= 0; j--) {
+        dm = moveBlocks(dm, j);
+        printBlocks(dm);
+    }
+#else
+    int _ = (dm.size() % 2) ? dm.size() - 1 : dm.size() - 2;
+    int id_last = _ / 2;
+    int j;
+
+    for (int id = id_last; id > -1; --id) {
+        j = dm.size() - 1;
+        while(dm[j].file_id != id) --j;
+
+        moveBlocks(dm, j);
+        printBlocks(dm);
+    }
+#endif
+
+    long long unsigned int result = 0;
+    int pos = 0;
+    
+    for (const auto& b : dm) {
+        for (int i = 0; i < b.block_size; i++) {
+            if (b.file_id != -1)
+                //result += (b.file_id * pos);
+                result += (static_cast<unsigned long long>(b.file_id) * pos);
+            pos++;
+        }
+    }
+
+    std::cout << "Part 2: " << result << std::endl;
+}
+
+#if USE_LEGACY
 std::vector<Block> moveBlocks(std::vector<Block>& dm, int j) {
     std::vector<Block> tmp;
     if (dm[j].file_id == -1)
@@ -180,40 +269,7 @@ std::vector<Block> moveBlocks(std::vector<Block>& dm, int j) {
     return tmp;
 }
 
-
-void part2(std::vector<int> data) {
-    Timer t;
-    std::vector<Block> dm;
-    
-    for (size_t i = 0; i < data.size(); i++) {
-        if (i % 2 == 0)
-            dm.emplace_back(data[i], i / 2);
-        else
-            dm.emplace_back(data[i], -1);
-    }
-
-    printBlocks(dm);
-
-    for (int j = dm.size() - 1; j >= 0; j--) {
-        dm = moveBlocks(dm, j);
-        printBlocks(dm);
-    }
-
-    long long unsigned int result = 0;
-    int pos = 0;
-    
-    for (const auto& b : dm) {
-        for (int i = 0; i < b.block_size; i++) {
-            if (b.file_id != -1)
-                //result += (b.file_id * pos);
-                result += (static_cast<unsigned long long>(b.file_id) * pos);
-            pos++;
-        }
-    }
-
-    std::cout << "Part 2: " << result << std::endl;
-}
-
+#endif
 
 #if 0
 #include <Python.h>
