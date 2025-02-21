@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.27.0)
 project(
     AoC2024 
     VERSION 1.0.0
-    LANGUAGES CXX
+    LANGUAGES C CXX
     DESCRIPTION "Advent of Code 2024"
 )
 
@@ -67,3 +67,4 @@ add_aoc_day(8 Day08_Resonant_Collinearity)
 add_aoc_day(9 Day09_Disk_Fragmenter)
 add_aoc_day(10 Day10_Hoof_It)
 add_aoc_day(11 Day11_Plutonian_Pebbles)
+    add_subdirectory(Day11_Plutonian_Pebbles)
